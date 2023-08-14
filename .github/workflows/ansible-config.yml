@@ -2,15 +2,6 @@ name: Ansible Deployment
 
 on:
   workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
     inputs:
       remote-host-ip:
         description: "IP address of the remote host"
@@ -19,6 +10,14 @@ jobs:
         description: "Select AWS Account (dev, sit, prod)"
         required: true
         default: "dev"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
