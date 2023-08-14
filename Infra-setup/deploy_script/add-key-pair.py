@@ -51,7 +51,8 @@ def encrypt_bucket(region, bucketname, s3_client):
 
 def upload_to_s3( key_material, keyname, bucketname,region):
   s3 = s3_client(region)
-  bucket = s3.create_bucket(Bucket=bucketname)
+  location = {'LocationConstraint': region}
+  bucket = s3.create_bucket(Bucket=bucketname, CreateBucketConfiguration=location)
   encrypt_bucket(region,bucketname,s3)
   s3.put_object(
     ACL='private',

@@ -16,10 +16,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -43,7 +39,7 @@ jobs:
       - name: Deploy Python Script
         run: |
           cd Infra-setup/deploy_script/
-          python add-key-pair.py ${BUCKET_NAME} ${AWS_REGION}
+          python add-key-pair.py ${{ secrets.BUCKET_NAME }} ${{ secrets.AWS_REGION }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
