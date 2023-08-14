@@ -7,6 +7,6 @@ resource "aws_route53_record" "www" {
   name       = var.domain_name
   type       = "A"
   ttl        = 300
-  records    = [aws_instance.management.public_ip]
+  records    = [aws_instance.web_server.public_ip]
   depends_on = [aws_route53_zone.primary]
 }

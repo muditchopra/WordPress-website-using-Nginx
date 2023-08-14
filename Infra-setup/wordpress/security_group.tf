@@ -1,6 +1,6 @@
-resource "aws_security_group" "management" {
+resource "aws_security_group" "web_server" {
   vpc_id      = data.aws_ssm_parameter.vpcid.value
-  name        = "${lower(var.project_name)}-${lower(var.env)}-sg"
+  name        = "${lower(var.project_name)}-web_server-sg"
   description = "security group for server"
 
   egress {
