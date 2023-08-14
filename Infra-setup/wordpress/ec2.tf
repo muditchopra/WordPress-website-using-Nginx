@@ -19,7 +19,7 @@ resource "aws_instance" "management" {
   instance_type          = "t3.micro"
   key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.management.id]
-  # subnet_id              =  subnet_id value if you want to deployin specific subnet 
+  subnet_id              = data.aws_ssm_parameter.vpcsubnet.value #if you want to deployin specific subnet 
   tags = {
     Name = "${lower(var.project_name)}-${lower(var.env)}-server"
   }
