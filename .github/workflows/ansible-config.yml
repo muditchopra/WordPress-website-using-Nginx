@@ -1,9 +1,7 @@
 name: Ansible Deployment
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -17,8 +15,6 @@ jobs:
       remote-host-ip:
         description: "IP address of the remote host"
         required: true
-    
-    inputs:
       aws-account:
         description: "Select AWS Account (dev, sit, prod)"
         required: true
