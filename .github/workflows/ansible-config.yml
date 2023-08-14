@@ -57,7 +57,7 @@ jobs:
           cd ansible
           ansible-playbook lemp_stack.yml \
             -i /tmp/inventory \
-            -u ubuntu --key-file=/tmp/key.pem
+            --private-key=/tmp/key.pem
 
       - name: Clean up temporary files
         run: |
