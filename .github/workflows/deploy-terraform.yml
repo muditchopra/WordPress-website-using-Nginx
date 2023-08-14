@@ -1,0 +1,68 @@
+name: Provision Infrastructure to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws-account:
+        description: "Select AWS Account (dev, sit, prod)"
+        required: true
+        default: "dev"
+
+  permissions:
+    id-token: write
+    contents: read
+
+jobs:
+  provision:
+    runs-on: [self-hosted, dedicated-runner]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets[format('AWS_ROLE_{}_ARN', github.event.inputs.aws-account)] }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Python Script
+        run: |
+          cd Infra-setup/deploy_script/
+          python add-key-pair.py ${{ secrets.BUCKET_NAME }} ${{ secrets.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+
+      - name: Terraform Init
+        run: |
+          cd Infra-setup/env/${aws-account}
+          terraform init
+
+      - name: Terraform Format
+        run: |
+          cd Infra-setup/env/${aws-account}
+          terraform fmt -check -recursive
+
+      - name: Terraform Plan
+        run: |
+          cd Infra-setup/env/${aws-account}
+          terraform plan -detailed-exitcode -lock=true -out jenkins-backend.tfplan
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd Infra-setup/env/${aws-account}
+          terraform apply -lock=true -input=false jenkins-backend.tfplan
