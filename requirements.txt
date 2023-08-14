@@ -1,2 +1,3 @@
-sys
+os
 boto3
+botocore
