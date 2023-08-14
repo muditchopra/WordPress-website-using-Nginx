@@ -56,13 +56,21 @@ jobs:
           cd Infra-setup/env/${aws-account}
           terraform fmt -check -recursive
 
+      - name: Terraform validate
+        run: terraform validate
+
       - name: Terraform Plan
+        id: plan
         run: |
           cd Infra-setup/env/${aws-account}
-          terraform plan -detailed-exitcode -lock=true -out jenkins-backend.tfplan
+          terraform plan -detailed-exitcode -input=false -lock=true -out infra.tfplan
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main'
         run: |
           cd Infra-setup/env/${aws-account}
-          terraform apply -lock=true -input=false jenkins-backend.tfplan
+          terraform apply -lock=true -input=false infra.tfplan
