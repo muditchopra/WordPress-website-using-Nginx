@@ -1,7 +1,6 @@
 ---
 - name: Configure LEMP stack
-  #hosts: localhost #all
-  # remote_user: ubuntu
+  remote_user: ubuntu
   become: yes
   vars_files: group_vars/default.yml
 

@@ -36,12 +36,12 @@ jobs:
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets[format('AWS_ROLE_{}_ARN', github.event.inputs.aws-account)] }}
+          role-to-assume: ${{ secrets.AWS_ROLE_DEV_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Download SSH private key from S3
         run: |
-          aws s3 cp s3://your-bucket-name/path/to/your/key.pem /tmp/key.pem
+          aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/wordpress-nginx-key /tmp/key.pem
 
       - name: Set permissions for SSH key
         run: |
@@ -50,7 +50,8 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd ansible
-          ansible-playbook YOUR_PLAYBOOK.yml \
-            -i ${{ github.event.inputs.remote-host-ip }}, \
-            --private-key /tmp/key.pem \
+          ansible-playbook lemp_stack.yml \
+            -i ${{ github.event.inputs.remote-host-ip }} \
+            --key-file=/tmp/key.pem \
             -e "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
+          rm -f /tmp/key.pem
