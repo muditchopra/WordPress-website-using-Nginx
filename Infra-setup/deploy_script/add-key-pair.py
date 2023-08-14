@@ -32,7 +32,7 @@ def create_key_pair():
 
 def encrypt_bucket(region, bucketname, s3_client):
   kms_client = boto3.client('kms', region_name=region)
-  result = kms_client.describe_key(KeyId='alias/core/s3')
+  result = kms_client.describe_key(KeyId='alias/aws/s3')
   s3_kms_arn= result['KeyMetadata']['Arn']
   response = s3_client.put_bucket_encryption(
     Bucket=bucketname,
