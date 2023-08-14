@@ -1,0 +1,155 @@
+---
+- name: Configure LEMP stack
+  #hosts: localhost #all
+  # remote_user: ubuntu
+  become: yes
+  vars_files: group_vars/default.yml
+
+  tasks:
+    - name: "installing nginx"
+      apt:
+        update_cache: true
+        name: nginx
+        state: present
+
+    - name: Start Nginx and enable at boot
+      systemd:
+        name: nginx
+        enabled: yes
+        state: started
+
+    - name: "installing php"
+      apt:
+        name: "{{ item }}"
+        update_cache: true
+        state: present
+      loop:
+        - php-fpm
+        - php-mysql
+        - php-curl
+        - php-gd
+        - php-mbstring
+        - php-xml
+        - php-xmlrpc
+        - php-json
+        - php-opcache
+
+    - name: "creating virtual host"
+      template:
+        src: "./nginx-virtualhost.tmpl"
+        dest: "/etc/nginx/sites-available/{{ domain }}"
+
+    - name: Remove default Nginx configurations
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/nginx/sites-enabled/default
+        - /etc/nginx/sites-available/default
+
+    - name: "creating document root"
+      file:
+        path: "/var/www/{{ domain }}"
+        state: directory
+        owner: "{{ owner }}"
+        group: "{{ group }}"
+
+    - name: "link"
+      file:
+        src: "/etc/nginx/sites-available/{{ domain }}"
+        dest: "/etc/nginx/sites-enabled/{{ domain }}"
+        state: link
+
+    - name: "installing mariadb package"
+      apt:
+        update_cache: true
+        name:
+          - mariadb-server
+          - mariadb-client
+          - python3-pymysql
+        state: present
+
+    - name: Start and enable MariaDB service
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: "updating root password"
+      ignore_errors: true
+      mysql_user:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: "root"
+        login_password: ""
+        name: "root"
+        password: "{{ mysql_root_password }}"
+        host_all: true
+
+    - name: "removing anonymous users"
+      mysql_user:
+        login_user: "root"
+        login_password: "{{ mysql_root_password }}"
+        name: ""
+        password: ""
+        host_all: true
+        state: absent
+
+    - name: "creating database"
+      mysql_db:
+        login_user: "root"
+        login_password: "{{ mysql_root_password }}"
+        name: "{{ mysql_db }}"
+        state: present
+
+    - name: "creating user"
+      mysql_user:
+        login_user: "root"
+        login_password: "{{ mysql_root_password }}"
+        name: "{{ mysql_user }}"
+        password: "{{ mysql_password }}"
+        state: present
+        host: "%"
+        priv: "{{ mysql_db }}.*:ALL"
+
+    - name: "downloading wordpress files"
+      get_url:
+        url: "{{ wp_url }}"
+        dest: "/tmp/wordpress.tar.gz"
+
+    - name: "extracting files"
+      unarchive:
+        src: "/tmp/wordpress.tar.gz"
+        dest: "/tmp/"
+        remote_src: true
+
+    - name: "copying website files"
+      copy:
+        src: "/tmp/wordpress/"
+        dest: "/var/www/{{ domain }}"
+        owner: "{{ owner }}"
+        group: "{{ group }}"
+        remote_src: yes
+
+    - name: "setting up wp-config"
+      template:
+        src: ./wp-config.php.tmpl
+        dest: "/var/www/{{ domain }}/wp-config.php"
+        owner: "{{ owner }}"
+        group: "{{ group }}"
+
+    - name: "restarting services"
+      service:
+        name: "{{ item }}"
+        state: restarted
+        enabled: true
+      with_items:
+        - nginx
+        - mariadb
+
+    - name: "cleanup"
+      file:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - "/tmp/wordpress/"
+        - "/tmp/wordpress.tar.gz"

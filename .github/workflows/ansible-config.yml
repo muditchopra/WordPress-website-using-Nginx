@@ -1,0 +1,60 @@
+name: Ansible Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    inputs:
+      remote-host-ip:
+        description: "IP address of the remote host"
+        required: true
+    
+    inputs:
+      aws-account:
+        description: "Select AWS Account (dev, sit, prod)"
+        required: true
+        default: "dev"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install Ansible
+        run: |
+          pip install ansible
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets[format('AWS_ROLE_{}_ARN', github.event.inputs.aws-account)] }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Download SSH private key from S3
+        run: |
+          aws s3 cp s3://your-bucket-name/path/to/your/key.pem /tmp/key.pem
+
+      - name: Set permissions for SSH key
+        run: |
+          chmod 600 /tmp/key.pem
+
+      - name: Run Ansible playbook
+        run: |
+          cd ansible
+          ansible-playbook YOUR_PLAYBOOK.yml \
+            -i ${{ github.event.inputs.remote-host-ip }}, \
+            --private-key /tmp/key.pem \
+            -e "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"

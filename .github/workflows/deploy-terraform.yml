@@ -33,7 +33,7 @@ jobs:
       - name: Set up AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets[format('AWS_ROLE_{}_ARN', github.event.inputs.aws-account)] }}
+          role-to-assume: ${{ secrets.AWS_ROLE_DEV_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy Python Script
