@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  provision:
-    runs-on: [self-hosted, dedicated-runner]
+  deploy:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
