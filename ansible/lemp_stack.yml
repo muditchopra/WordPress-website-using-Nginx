@@ -1,5 +1,6 @@
 ---
 - name: Configure LEMP stack
+  hosts: webserver
   remote_user: ubuntu
   become: yes
   vars_files: group_vars/default.yml

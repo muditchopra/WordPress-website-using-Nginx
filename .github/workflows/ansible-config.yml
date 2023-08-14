@@ -53,11 +53,12 @@ jobs:
           for ip in "${IPS[@]}"; do
             echo "$ip" >> /tmp/inventory
           done
+          cat /tmp/inventory
       - name: Run Ansible playbook
         run: |
           cd ansible
           ansible-playbook lemp_stack.yml \
-            -i ${{ github.event.inputs.remote-host-ip }} \
+            -i /tmp/inventory \
             --key-file=/tmp/key.pem \
             -e "ansible_ssh_common_args='-o StrictHostKeyChecking=no'"
 
