@@ -36,7 +36,7 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_DEV_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy Python Script
+      - name: Python Script for key-pair creation.
         run: |
           cd Infra-setup/deploy_script/
           python add-key-pair.py ${{ secrets.BUCKET_NAME }} ${{ secrets.AWS_REGION }}
@@ -65,7 +65,7 @@ jobs:
         id: plan
         run: |
           cd Infra-setup/env/${{ github.event.inputs.aws-account }}
-          terraform plan -detailed-exitcode -input=false -lock=true -out infra.tfplan
+          terraform plan -destroy -detailed-exitcode -input=false -lock=true -out infra.tfplan
 
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
