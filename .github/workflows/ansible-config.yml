@@ -42,7 +42,6 @@ jobs:
         run: |
           aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/webserver-key /tmp/webserver-key
           base64 -d /tmp/webserver-key >> /tmp/key.pem
-          cat /tmp/key.pem
 
       - name: Set permissions for SSH key
         run: |
@@ -51,9 +50,13 @@ jobs:
       - name: Create temporary inventory file
         run: |
           echo "[webserver]" > /tmp/inventory
-          echo "${{ github.event.inputs.remote-host-ip }} ansible_user="ubuntu" ansible_port="22" ansible_ssh_private_key_file="/tmp/key.pem"" >> /tmp/inventory
-          cat /tmp/inventory
+          echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='/tmp/key.pem'" >> /tmp/inventory
           export ANSIBLE_HOST_KEY_CHECKING=False
+
+      - name: Run Ansible playbook
+        run: |
+          cd ansible
+          ansible webserver -m ping -i /tmp/inventory
 
       - name: Run Ansible playbook
         run: |
