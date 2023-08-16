@@ -54,7 +54,6 @@ jobs:
           cd ansible
           echo "[webserver]" >> inventory
           echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='./key.pem'" >> inventory
-          cat inventory
           export ANSIBLE_HOST_KEY_CHECKING=False
 
       - name: delete known_hosts file if any
@@ -65,7 +64,7 @@ jobs:
       - name: Ping host machines
         run: |
           cd ansible
-          ansible webserver -m ping -i inventory -vvv
+          ansible all -m ping -i inventory -vvv
 
       - name: Run Ansible playbook
         run: |
