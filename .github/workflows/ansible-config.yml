@@ -42,7 +42,7 @@ jobs:
         run: |
           cd ansible
           aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/webserver-key webserver-key
-          base64 -d /tmp/webserver-key >> ./key.pem
+          base64 -d webserver-key >> key.pem
 
       - name: Set permissions for SSH key
         run: |
@@ -65,7 +65,7 @@ jobs:
       - name: Run Ansible playbook
         run: |
           cd ansible
-          ansible-playbook lemp_stack.yml -i /tmp/inventory
+          ansible-playbook lemp_stack.yml -i inventory
 
       - name: Clean up temporary files
         run: |
