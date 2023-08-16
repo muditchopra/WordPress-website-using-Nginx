@@ -40,23 +40,27 @@ jobs:
 
       - name: Download SSH private key from S3
         run: |
-          aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/webserver-key /tmp/webserver-key
-          base64 -d /tmp/webserver-key >> /tmp/key.pem
+          cd ansible
+          aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/webserver-key webserver-key
+          base64 -d /tmp/webserver-key >> ./key.pem
 
       - name: Set permissions for SSH key
         run: |
-          chmod 600 /tmp/key.pem
+          cd ansible
+          chmod 600 key.pem
 
       - name: Create temporary inventory file
         run: |
-          echo "[webserver]" > /tmp/inventory
-          echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='/tmp/key.pem'" >> /tmp/inventory
+          cd ansible
+          echo "[webserver]" >> inventory
+          echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='./key.pem'" >> inventory
+          cat inventory
           export ANSIBLE_HOST_KEY_CHECKING=False
 
       - name: Run Ansible playbook
         run: |
           cd ansible
-          ansible webserver -m ping -i /tmp/inventory
+          ansible webserver -m ping -i inventory -vvv
 
       - name: Run Ansible playbook
         run: |
@@ -65,4 +69,5 @@ jobs:
 
       - name: Clean up temporary files
         run: |
-          rm -f /tmp/inventory /tmp/key.pem /tmp/webserver-key
+          cd ansible
+          rm -f inventory key.pem webserver-key
