@@ -57,7 +57,12 @@ jobs:
           cat inventory
           export ANSIBLE_HOST_KEY_CHECKING=False
 
-      - name: Run Ansible playbook
+      - name: Create temporary inventory file
+        run: |
+          ls -la 
+          rm -f ./.ssh/known_hosts ./.ssh/known_hosts.old
+
+      - name: Ping host machines
         run: |
           cd ansible
           ansible webserver -m ping -i inventory -vvv
