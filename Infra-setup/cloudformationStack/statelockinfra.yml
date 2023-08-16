@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: An S3 bucket plus DynamoDB table to be used by Terraform for remote state storage and locking.
+Parameters:
+  Environment:
+    Description: Name of environment
+    Type: String
+    AllowedValues:
+      - dev
+      - sit
+      - prod
+Resources:
+  TerraformStateBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${Environment}-wordpress-terraform-state-${AWS::Region}-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+  TerraformStateBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: !Sub "${Environment}-terraform-state-policy"
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: "s3:*"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:role/workflow-action-role"
+            Resource: !Sub "arn:aws:s3:::${TerraformStateBucket}/*"
+      Bucket: !Ref TerraformStateBucket
+  TerraformStateLockTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: "PAY_PER_REQUEST"
+      TableName: !Sub "${Environment}-wordpress-terraform-state"
+      AttributeDefinitions:
+        - AttributeName: "LockID"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "LockID"
+          KeyType: "HASH"
+      Tags:
+        - Key: Name
+          Value: "Terraform Remote State Lock Table"
+Outputs:
+  TerraformRemotestateBucket:
+    Description: A reference to the Terraform Remotestate bucket
+    Value: !Ref TerraformStateBucket
+
+  TerraformRemotestateLockTable:
+    Description: A reference to the Terraform State Lock Table
+    Value: !Ref TerraformStateLockTable
