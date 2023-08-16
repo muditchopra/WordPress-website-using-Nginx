@@ -31,7 +31,6 @@
         executable: pip3
 
     - name: Generate SSL Certificate using Certbot
-      ignore_errors: true
       command: certbot  --nginx --noninteractive --agree-tos -d {{ domain }} --email {{ certbot_admin_email }}
 
     - name: installing php
