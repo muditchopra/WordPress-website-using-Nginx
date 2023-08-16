@@ -1,0 +1,72 @@
+# This config file uses nginx fastcgi-cache
+fastcgi_cache_path /var/www/{{domain}}/cache levels=1:2 keys_zone=wpcache:100m inactive=60m;
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name "{{domain}}";
+    root /var/www/{{domain}};
+    index index.php index.html index.htm;
+
+    #gzip compression
+    include snippets/gzip.conf;
+
+    #caching conf
+    include snippets/cache.conf;
+
+    # Fastcgi cache rules
+    include snippets/fastcgi-cache.conf;
+
+    ssl_certificate /etc/letsencrypt/live/{{domain}}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{domain}}/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/{{domain}}/chain.pem;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparam.pem;
+    ssl_session_cache shared:le_nginx_SSL:1m;
+    ssl_session_timeout 1d;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+    ssl_ecdh_curve secp384r1;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    add_header Strict-Transport-Security "max-age=15768000; includeSubdomains; preload;";
+    add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'; script-src 'self'; img-src 'self'; style-src 'self'; base-uri 'self'; form-action 'self';";
+    add_header Referrer-Policy "no-referrer, strict-origin-when-cross-origin";
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-Content-Type-Options nosniff;
+    add_header X-XSS-Protection "1; mode=block";
+
+    location / {
+       try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        include snippets/fastcgi-php.conf;
+
+        # Skip cache based on rules in snippets/fastcgi-cache.conf.
+        fastcgi_cache_bypass $skip_cache;
+        fastcgi_no_cache $skip_cache;
+        # Define memory zone for caching. Should match key_zone in fastcgi_cache_path above.
+        fastcgi_cache wpcache;
+        # Define caching time.
+        fastcgi_cache_valid 60m;
+        #increase timeouts
+        fastcgi_read_timeout 6000;
+        fastcgi_connect_timeout 6000;
+        fastcgi_send_timeout 6000;
+        proxy_read_timeout 6000;
+        proxy_connect_timeout 6000;
+        proxy_send_timeout 6000;
+        send_timeout 6000;
+    }
+
+    location ~ /\.ht {
+       deny all;
+    }
+
+    # Increase upload size limit
+    client_max_body_size 64M;
+
+}

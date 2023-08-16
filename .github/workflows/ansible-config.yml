@@ -40,7 +40,8 @@ jobs:
 
       - name: Download SSH private key from S3
         run: |
-          aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/wordpress-nginx-key /tmp/key.pem
+          aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/webserver-key /tmp/webserver-key
+          base64 -d /tmp/webserver-key >> /tmp/key.pem
 
       - name: Set permissions for SSH key
         run: |
@@ -49,16 +50,14 @@ jobs:
       - name: Create temporary inventory file
         run: |
           echo "[webserver]" > /tmp/inventory
-          echo "${{ github.event.inputs.remote-host-ip }}" >> /tmp/inventory
+          echo "${{ github.event.inputs.remote-host-ip }} ansible_user="ubuntu" ansible_port="22" ansible_ssh_private_key_file="/tmp/key.pem"" >> /tmp/inventory
           export ANSIBLE_HOST_KEY_CHECKING=False
 
       - name: Run Ansible playbook
         run: |
           cd ansible
-          ansible-playbook lemp_stack.yml \
-            -i /tmp/inventory \
-            --private-key=/tmp/key.pem
+          ansible-playbook lemp_stack.yml -i /tmp/inventory
 
       - name: Clean up temporary files
         run: |
-          rm -f /tmp/inventory /tmp/key.pem
+          rm -f /tmp/inventory /tmp/key.pem /tmp/webserver-key

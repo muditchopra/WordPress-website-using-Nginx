@@ -6,7 +6,7 @@
   vars_files: group_vars/default.yml
 
   tasks:
-    - name: "installing nginx"
+    - name: installing nginx
       apt:
         update_cache: true
         name: nginx
@@ -18,7 +18,23 @@
         enabled: yes
         state: started
 
-    - name: "installing php"
+    - name: Install python3-pip and python3-certbot-nginx package
+      apt:
+        name:
+          - python3-pip
+          - python3-certbot-nginx
+        state: latest
+
+    - name: Install Certbot via pip
+      pip:
+        name: certbot
+        executable: pip3
+
+    - name: Generate SSL Certificate using Certbot
+      ignore_errors: true
+      command: certbot  --nginx --noninteractive --agree-tos -d {{ domain }} --email {{ certbot_admin_email }}
+
+    - name: installing php
       apt:
         name: "{{ item }}"
         update_cache: true
@@ -34,10 +50,19 @@
         - php-json
         - php-opcache
 
-    - name: "creating virtual host"
+    - name: creating virtual host
       template:
-        src: "./nginx-virtualhost.tmpl"
+        src: "./nginx-virtualhost-{{ port }}.tmpl"
         dest: "/etc/nginx/sites-available/{{ domain }}"
+
+    - name: adding gzip, caching config file
+      copy:
+        src: ./snippets/{{ item }}
+        dest: /etc/nginx/snippets/{{ item }}
+      loop:
+        - cache.conf
+        - fastcgi-cache.conf
+        - gzip.conf
 
     - name: Remove default Nginx configurations
       file:
@@ -47,20 +72,20 @@
         - /etc/nginx/sites-enabled/default
         - /etc/nginx/sites-available/default
 
-    - name: "creating document root"
+    - name: link
+      file:
+        src: "/etc/nginx/sites-available/{{ domain }}"
+        dest: "/etc/nginx/sites-enabled/{{ domain }}"
+        state: link
+
+    - name: creating file/directory owner
       file:
         path: "/var/www/{{ domain }}"
         state: directory
         owner: "{{ owner }}"
         group: "{{ group }}"
 
-    - name: "link"
-      file:
-        src: "/etc/nginx/sites-available/{{ domain }}"
-        dest: "/etc/nginx/sites-enabled/{{ domain }}"
-        state: link
-
-    - name: "installing mariadb package"
+    - name: installing mariadb package
       apt:
         update_cache: true
         name:
@@ -75,7 +100,7 @@
         state: started
         enabled: yes
 
-    - name: "updating root password"
+    - name: updating root password
       ignore_errors: true
       mysql_user:
         login_unix_socket: /var/run/mysqld/mysqld.sock
@@ -85,7 +110,7 @@
         password: "{{ mysql_root_password }}"
         host_all: true
 
-    - name: "removing anonymous users"
+    - name: removing anonymous users
       mysql_user:
         login_user: "root"
         login_password: "{{ mysql_root_password }}"
@@ -94,14 +119,14 @@
         host_all: true
         state: absent
 
-    - name: "creating database"
+    - name: creating database
       mysql_db:
         login_user: "root"
         login_password: "{{ mysql_root_password }}"
         name: "{{ mysql_db }}"
         state: present
 
-    - name: "creating user"
+    - name: creating user
       mysql_user:
         login_user: "root"
         login_password: "{{ mysql_root_password }}"
@@ -111,18 +136,18 @@
         host: "%"
         priv: "{{ mysql_db }}.*:ALL"
 
-    - name: "downloading wordpress files"
+    - name: downloading wordpress files
       get_url:
         url: "{{ wp_url }}"
         dest: "/tmp/wordpress.tar.gz"
 
-    - name: "extracting files"
+    - name: extracting files
       unarchive:
         src: "/tmp/wordpress.tar.gz"
         dest: "/tmp/"
         remote_src: true
 
-    - name: "copying website files"
+    - name: copying website files
       copy:
         src: "/tmp/wordpress/"
         dest: "/var/www/{{ domain }}"
@@ -130,14 +155,14 @@
         group: "{{ group }}"
         remote_src: yes
 
-    - name: "setting up wp-config"
+    - name: setting up wp-config
       template:
         src: ./wp-config.php.tmpl
         dest: "/var/www/{{ domain }}/wp-config.php"
         owner: "{{ owner }}"
         group: "{{ group }}"
 
-    - name: "restarting services"
+    - name: restarting services
       service:
         name: "{{ item }}"
         state: restarted
@@ -145,8 +170,34 @@
       with_items:
         - nginx
         - mariadb
+        - php8.1-fpm
 
-    - name: "cleanup"
+    - name: install UFW firewall
+      apt:
+        name: ufw
+        state: latest
+
+    - name: Deny incoming by default
+      command: ufw default deny incoming
+
+    - name: Allow outgoing by default
+      command: ufw default allow outgoing
+
+    - name: Allow OpenSSH
+      command: ufw allow OpenSSH
+
+    - name: Enable UFW
+      command: ufw --force enable
+
+    - name: Allow Nginx HTTP if port 80 is open
+      command: ufw allow 'Nginx HTTP'
+      when: port == '80'
+
+    - name: Allow Nginx HTTPS if port 443 is open
+      command: ufw allow 'Nginx HTTPS'
+      when: port == '443'
+
+    - name: cleanup
       file:
         name: "{{ item }}"
         state: absent
