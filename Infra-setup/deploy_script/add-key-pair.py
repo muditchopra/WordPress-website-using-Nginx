@@ -16,7 +16,7 @@ def create_key_pair():
   bucketname = sys.argv[1]
   region = sys.argv[2]
   ec2 = ec2_client(region)
-  keyname = "wordpress-nginx-key"
+  keyname = "webserver-key"
   try:
     response = ec2.create_key_pair(
       KeyName=keyname
