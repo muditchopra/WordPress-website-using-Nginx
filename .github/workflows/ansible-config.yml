@@ -57,7 +57,7 @@ jobs:
           cat inventory
           export ANSIBLE_HOST_KEY_CHECKING=False
 
-      - name: Create temporary inventory file
+      - name: delete known_hosts file if any
         run: |
           ls -la 
           rm -f ./.ssh/known_hosts ./.ssh/known_hosts.old
