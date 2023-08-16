@@ -65,7 +65,7 @@ jobs:
         id: plan
         run: |
           cd Infra-setup/env/${{ github.event.inputs.aws-account }}
-          terraform plan -detailed-exitcode -input=false -lock=true -out infra.tfplan
+          terraform plan -destroy -detailed-exitcode -input=false -lock=true -out infra.tfplan
 
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
