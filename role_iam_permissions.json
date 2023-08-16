@@ -66,12 +66,7 @@
                 "kms:Decrypt",
                 "kms:DescribeKey"
             ],
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
-                    "aws:ResourceTag/red-hat": "true"
-                }
-            }
+            "Resource": "*"
         },
         {
             "Effect": "Allow",
