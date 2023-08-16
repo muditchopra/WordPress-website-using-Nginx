@@ -35,7 +35,13 @@ We can now initialize the terraform but before we need to create the s3 bucket a
 
 Login to AWS console and Navigate to cloudformation and create the stack with `statelockinfra.yml` present in cloudformationStack folder. Upload the file and create Environment parameter and set value as dev.
 
-Now the value of bunketname and table will be passed in ./env/dev/provider.tf
+Then create ssm_parameter in system manager >> parmeter store
+Name: corevpcid , type : string , value : {vpcID}  
+Name: vpcsubnet , type : string , value : {subnetId}
+
+##### Terraform Backend and format validation
+
+Now the value of bucketname and table will be passed in ./env/dev/provider.tf
 After that initialize the terraform please check that terraform is installed.
 
 ```bash
@@ -48,14 +54,20 @@ terraform fmt -check -recursive
 terraform validate
 ```
 
+### Terraform Plan
+
 if all the previous cmd's are succeded the we create the plan and output in a file.
 
 ```bash
 terraform plan -input=false -lock=true -out infra.tfplan
 ```
 
+### Terraform Apply
+
 Apply the terraform out plan which will create the required infra in AWS account for which you have credentials.
 
 ```bash
 terraform apply -lock=true -input=false infra.tfplan
 ```
+
+### Terraform Destroy
