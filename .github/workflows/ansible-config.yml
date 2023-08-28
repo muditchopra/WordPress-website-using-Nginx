@@ -77,7 +77,7 @@ jobs:
       - name: Ping host machines
         run: |
           cd ansible
-          ansible all -m ping -i inventory
+          ansible all -m ping -i inventory --ssh-common-args='-o StrictHostKeyChecking=no'
 
       # ssh -i ~/.ssh/id_rsa ubuntu@${{ github.event.inputs.remote-host-ip }} -o StrictHostKeyChecking=no -vvv
       # git clone https://github.com/muditchopra/WordPress-website-using-Nginx.git
