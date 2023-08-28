@@ -75,8 +75,9 @@ jobs:
 
       - name: Ping host machines
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@${{ github.event.inputs.remote-host-ip }}
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ github.event.inputs.remote-host-ip }} -o StrictHostKeyChecking=no -vvv
           git clone git clone https://github.com/muditchopra/WordPress-website-using-Nginx.git
+          exit
 
       # - name: Run Ansible playbook
       #   run: |
