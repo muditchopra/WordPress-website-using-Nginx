@@ -11,10 +11,6 @@ on:
         required: true
         default: "dev"
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -31,35 +27,6 @@ jobs:
       - name: Install Ansible
         run: |
           pip install ansible
-
-      # - name: Set up AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     role-to-assume: ${{ secrets.AWS_ROLE_DEV_ARN }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
-
-      # - name: Download SSH private key from S3
-      #   run: |
-      #     cd ansible
-      #     aws s3 cp s3://${{ secrets.BUCKET_NAME }}/keys/webserver-key webserver-key
-      #     base64 -d webserver-key >> key.pem
-
-      # - name: Set permissions for SSH key
-      #   run: |
-      #     cd ansible
-      #     chmod 600 key.pem
-
-      # - name: Create temporary inventory file
-      #   run: |
-      #     cd ansible
-      #     echo "[webserver]" >> inventory
-      #     echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='./key.pem'" >> inventory
-      #     export ANSIBLE_HOST_KEY_CHECKING=False
-
-      # - name: delete known_hosts file if any
-      #   run: |
-      #     ls -la
-      #     rm -f ./.ssh/known_hosts ./.ssh/known_hosts.old
 
       - name: Create SSH key
         run: |
@@ -84,11 +51,8 @@ jobs:
           cd ansible
           ansible-playbook lemp_stack.yml -i inventory --ssh-common-args='-o StrictHostKeyChecking=no'
 
-      # ssh -i ~/.ssh/id_rsa ubuntu@${{ github.event.inputs.remote-host-ip }} -o StrictHostKeyChecking=no -vvv
-      # git clone https://github.com/muditchopra/WordPress-website-using-Nginx.git
-      # exit
-
-      # - name: Clean up temporary files
-      #   run: |
-      #     cd ansible
-      #     rm -f inventory key.pem webserver-key
+      - name: Clean up temporary files
+        run: |
+          cd ansible
+          rm -f inventory
+          rm -f ~/.ssh/id_rsa
