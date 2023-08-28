@@ -67,16 +67,16 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           echo "${{ github.event.inputs.remote-host-ip }}" > ~/.ssh/known_hosts
 
-      - name: Create temporary inventory file
-        run: |
-          cd ansible
-          echo "[webserver]" >> inventory
-          echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='~/.ssh/id_rsa'" >> inventory
+      # - name: Create temporary inventory file
+      #   run: |
+      #     cd ansible
+      #     echo "[webserver]" >> inventory
+      #     echo "${{ github.event.inputs.remote-host-ip }} ansible_user='ubuntu' ansible_port='22' ansible_ssh_private_key_file='~/.ssh/id_rsa'" >> inventory
 
       - name: Ping host machines
         run: |
-          cd ansible
-          ansible all -m ping -i inventory -vvv
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ github.event.inputs.remote-host-ip }}
+          git clone git clone https://github.com/muditchopra/WordPress-website-using-Nginx.git
 
       # - name: Run Ansible playbook
       #   run: |
