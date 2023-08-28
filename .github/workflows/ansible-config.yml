@@ -83,7 +83,7 @@ jobs:
       #     cd ansible
       #     ansible-playbook lemp_stack.yml -i inventory
 
-      - name: Clean up temporary files
-        run: |
-          cd ansible
-          rm -f inventory key.pem webserver-key
+      # - name: Clean up temporary files
+      #   run: |
+      #     cd ansible
+      #     rm -f inventory key.pem webserver-key
