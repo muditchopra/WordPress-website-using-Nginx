@@ -92,6 +92,8 @@ we need to create some data resources in AWS Management console which we require
 
 Add the domain name to `domain_name` [here](/Infra-setup/env/dev/main.tf)
 
+if you want to create the hosted zone and A type record for domain to point the EC2 instance then uncomment the conde in [file](/Infra-setup/wordpress/route53.tf).
+
 ## server configuration
 
 The default port on Nginx listens on 80 HTTP.
