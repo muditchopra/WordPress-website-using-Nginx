@@ -122,7 +122,7 @@ domain: "wordpress"
 certbot_admin_email: "admin@xyz.com"
 ```
 
-if you change the above port and domain then remove the `ignore_errors: true` form [here](/ansible/lemp_stack.yml) task `name: Generate SSL Certificate using Certbot`.
+if you change the above port and domain then remove the tage `ignore_errors: true` form [here](/ansible/lemp_stack.yml) task `name: Generate SSL Certificate using Certbot`.
 
 ## Destory/delete server (Terraform destroy)
 
