@@ -81,6 +81,15 @@ This can be created with the Cloudformation template [here](/Infra-setup/cloudfo
 
 After successful creation add value of bucket name and Dynamodb table in terraform config [here](/Infra-setup/env/dev/provider.tf).
 
+```
+backend "s3" {
+    bucket         = "<BUCKET_NAME_without_angular_brackets>"
+    key            = "statefile/wordpress-dev.tfstate"
+    region         = "eu-north-1"
+    dynamodb_table = "<TABLE_NAME_without_angular_brackets>"
+  }
+```
+
 ## Data resource
 
 we need to create some data resources in AWS Management console which we required in terraform configuration. Create ssm_parameter in colsole >> system manager >> parameter store.
@@ -90,7 +99,18 @@ we need to create some data resources in AWS Management console which we require
 
 ## Env specific variable for AWS terraform config
 
-Add the domain name to `domain_name` [here](/Infra-setup/env/dev/main.tf)
+Add the domain name to `domain_name` [here](/Infra-setup/env/dev/main.tf).
+
+```
+module "infraSetup" {
+  source = "../../wordpress"
+  env    = "dev"
+
+  aws_region  = "eu-north-1"
+  key_name    = "webserver-key"
+  domain_name = "wordpress-nginx11.com"
+}
+```
 
 if you want to create the hosted zone and A type record for domain to point the EC2 instance then uncomment the code in [file](/Infra-setup/wordpress/route53.tf).
 
