@@ -4,9 +4,9 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    bucket         = "prod-wordpress-terraform-state-eu-north-1"
+    bucket         = "<BUCKET_NAME>"
     key            = "statefile/wordpress-prod.tfstate"
     region         = "eu-north-1"
-    dynamodb_table = "prod-wordpress-terraform-state"
+    dynamodb_table = "<TABLE_NAME>"
   }
 }
