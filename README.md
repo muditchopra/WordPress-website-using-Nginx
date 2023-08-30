@@ -50,7 +50,7 @@ We have to manually add the sub repo part, this tells the role which repositorie
                     "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
                 },
                 "StringLike": {
-                    "token.actions.githubusercontent.com:sub": "repo:[username]/[REPO_Name]:*"
+                    "token.actions.githubusercontent.com:sub": "repo:[username]/[Repo_Name]:*"
                 }
             }
         }
