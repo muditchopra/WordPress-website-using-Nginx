@@ -29,7 +29,7 @@ Audience: sts.amazonaws.com
 
 Navigate to IAM > Roles and create a new role. Select Web Identity and choose the just created identity provider and Audience same as above. Add the permission by create a new policy and copy the content of [file](./role_iam_permissions.json) and add the following permission to role with creating the inline policy.
 
-- Role Name : workflow-action-role
+- Role Name : workflow-action-role #Name should be same.
 
 After the role has been created we are going to add the GitHub repo to the Trust relationships of the role. After editing the trusted entities JSON should look something like this:
 
